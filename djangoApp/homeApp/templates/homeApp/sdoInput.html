@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Water temperature prediction</title>
+    <title>Saturated Dissolved Oxygen</title>
     {% comment %} <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
@@ -15,20 +15,17 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        function submit(){                    
-            var model=document.getElementById("model").selectedIndex+1
-            var evaluation=document.getElementById("evaluation").selectedIndex+1                        
+        function submit(){                                
             var csvInput=document.querySelector('input[type="file"]')  
             if(csvInput.files.length==0 || csvInput.files[0].name.split('.')[1]!="csv")            
             {
+                
                 $("#errorDiv").removeClass('d-none')                          
                 return
-            }
-            var body=new FormData()
-            body.append('model',model)
-            body.append('evaluation',evaluation)            
-            body.append('csvFile',csvInput.files[0])            
-            fetch('/waterTemp',{
+            }            
+            var body=new FormData()            
+            body.append('csvFile',csvInput.files[0])                        
+            fetch('/sdo/input',{
                 method: 'POST',
                 headers: {                    
                     'X-CSRFToken': '{{ csrf_token }}'              
@@ -36,9 +33,8 @@
                 body: body
             }).then(function(response) {                
                 return response.json()
-            }).then(function(data) {                               
-                document.getElementById("resultP").innerHTML=data['evalString']
-                $("#resultDiv").removeClass('d-none')
+            }).then(function(data) {         
+                console.log(data)                                      
                 $("#downloadDiv").removeClass('d-none')                          
                 $("#errorDiv").addClass('d-none')                                          
             }).catch(function(error) {
@@ -51,58 +47,23 @@
 <body>
     {% csrf_token %}
     <nav class="navbar navbar-expand-lg navbar-light bg-light m-2 p-2">
-        <a class="navbar-brand" href="/">Home</a>                  
+        <a class="navbar-brand" href="/sdo">SDO</a>                  
     </nav>
     <div class="container">        
-        <h1 class="text-center mb-5">Water temperature prediction</h1>   
+        <h1 class="text-center mb-5">Select Input File</h1>   
         <div class="row d-flex justify-content-center mb-3">            
-            <label class="form-label text-center" for="customFile">Input csv File</label>
+            <label class="form-label text-center" for="customFile">Input csv file containing water temp </label>
             <input type="file" class="w-25 form-control" id="customFile" name="csvFile"/>
-        </div>
-        <div class="row mb-4">                                                  
-            <div class="col-4">
-            <label for="airtemp">Enter air temp:</label>
-            <select class="form-select" id="airtemp" aria-label="Default select example" >
-                <option value="0">airTemp</option>            
-            </select>
-            </div>
-            <div class="col-4">
-            <label for="watertemp">Enter air temp:</label>
-            <select class="form-select" id="watertemp" name="waterTemp">
-                <option value="0">waterTemp</option>            
-            </select>
-            </div>            
-            <div class="col-4">
-                <label for="model">Choose ML model:</label>
-                <select class="form-select" id="model" name="model">
-                    <option value="0">Linear Regression</option>            
-                    <option value="1">Random Forest</option>            
-                    <option value="2">SVR</option>            
-                </select>
-            </div>            
-        </div>
-        <div class="row mb-4">
-            <div class="col-12">                
-                <label for="evaluation">Choose evaluation metric:</label>
-                    <select class="form-select" id="evaluation" name="model">                        
-                        <option value="0">MAE</option>                                    
-                        <option value="1">MSE</option>            
-                        <option value="2">RMSE</option>            
-                    </select>                
-            </div>
         </div>        
         <div class="text-center" id="after">
             <button type="button" onclick="submit()" class="btn btn-primary ">Submit</button>
         </div>                            
-        <div id="downloadDiv" class="row d-none" >
-            <a href="{% url 'download_file' "predictions.csv" %}" download>Download</a>        
-        </div>
         <div id="errorDiv" class="row d-none" >
             <p class="text-danger">Submit csv file</p>        
         </div>
-        <div id="resultDiv" class="row d-none" >
-            <p id="resultP"></p>        
-        </div>
+        <div id="downloadDiv" class="row d-none" >
+            <a href="{% url 'download_file' "saturated_DO.csv" %}" download>Download</a>        
+        </div>        
     </div>    
 </body>
 </html>
